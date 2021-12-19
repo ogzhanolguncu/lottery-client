@@ -1,4 +1,4 @@
-const NETWORKS_IDS = {
+export const NETWORKS_IDS = {
 	Mainnet: "1",
 	Kovan: "42",
 	Ropsten: "3",
@@ -28,5 +28,14 @@ export const networkMatcher = (networkId: string | null) => {
 			return NETWORKS.Mainnet;
 		default:
 			return "Network not found!";
+	}
+};
+
+export const maskAddress = (address: string | null) => {
+	if (address) {
+		const addressHead = address.slice(0, 4);
+		const addressTail = address.slice(-4, address.length);
+
+		return `${addressHead}....${addressTail}`;
 	}
 };

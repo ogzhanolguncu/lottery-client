@@ -5,12 +5,20 @@ import { ethers } from "ethers";
 
 import lotteryAbi from "./Contract/Lottery.json";
 import { Lottery as LotteryType } from "./Contract/types/Lottery";
-import { networkMatcher } from "./util";
+import { maskAddress, networkMatcher } from "./util";
+import { TransactionRequest } from "@ethersproject/providers";
 
 const CONTRACT_ADDRESS = "0x8A495C3Cd9C663853b132BE99E82a6D16e569d03";
+//TODO: SHOW WINNERS ADDRESS WHEN WINER IS PICKED
+//TODO: ADD NUMBER OF PEOPLE IN THE LOTTERY WHEN APP FIRST LOADS
+//TODO: GOOD TO HAVE -> SWR TO PERIODICAALLY REFRESH
+//TODO: WATCH FOR NETWORK CHANGES AND RELOAD THE PAGE
+//TODO: WATCH FOR ACCOUNT CHANGES AND RELOAD THE PAGE
+//TODO: AFTER PICK WINNER CLICKED REFRESH WALLET BALANCE
 
 const App = () => {
-	const walletAddress = window.ethereum.selectedAddress;
+	const walletAddress = maskAddress(window.ethereum.selectedAddress);
+	const walletNetwork = networkMatcher(window.ethereum.networkVersion);
 
 	const [isWalletConnected, setIsWalletConnected] = useState(false);
 
@@ -21,8 +29,9 @@ const App = () => {
 	const [isWalletBalance, setIsWalletBalance] = useState(false);
 
 	const [playerCount, setPlayerCount] = useState<number>();
-
 	const [contractError, setContractError] = useState<string>();
+
+	const [isTransactionPending, setIsTransactionPending] = useState(false);
 
 	const connectToMetamask = async () => {
 		try {
@@ -72,10 +81,23 @@ const App = () => {
 	}, [isWalletConnected]);
 
 	const handleJoinLottery = async () => {
-		const lotteryContract = contractFactory();
-		const response = await lotteryContract.pickWinner();
+		try {
+			const etherAmount = "0.1";
+			const tx: TransactionRequest = {
+				to: CONTRACT_ADDRESS,
+				value: ethers.utils.parseEther(etherAmount),
+			};
 
-		console.log({ response });
+			const web3Provider = new ethers.providers.Web3Provider(window.ethereum as any);
+			const signer = web3Provider.getSigner();
+
+			setIsTransactionPending(true);
+			await signer.sendTransaction(tx);
+			setIsTransactionPending(false);
+		} catch (err) {
+			setIsTransactionPending(false);
+			setContractError(err.error.message.split("execution reverted: ")[1]);
+		}
 	};
 
 	const handlePickWinner = async () => {
@@ -100,7 +122,7 @@ const App = () => {
 			setContractError(err.error.message.split("execution reverted: ")[1]);
 		}
 	};
-	console.log(playerCount);
+
 	useEffect(() => {
 		contractOwner();
 		getWalletBalance();
@@ -111,6 +133,10 @@ const App = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isWalletConnected]);
 
+	useEffect(() => {
+		window.ethereum.on("accountsChanged", contractOwner);
+	}, [contractOwner]);
+
 	const isPickWinnerAllowed =
 		playerCount && (playerCount >= 10 || (isContractOwner && playerCount >= 3));
 
@@ -120,7 +146,7 @@ const App = () => {
 				<HStack spacing="35px">
 					<SkeletonText isLoaded={isWalletConnected} noOfLines={3} width="80px" height="48px">
 						<Box>
-							Network <Text color="white">{networkMatcher(window.ethereum.networkVersion)}</Text>
+							Network <Text color="white">{walletNetwork}</Text>
 						</Box>
 					</SkeletonText>
 					<SkeletonText
@@ -171,6 +197,7 @@ const App = () => {
 								justifyContent="center"
 								_focus={{ borderColor: "transparent" }}
 								backgroundColor="#3D2C8D"
+								isLoading={isTransactionPending}
 								disabled={!isWalletConnected}
 								onClick={handleJoinLottery}
 							>
