@@ -7,6 +7,7 @@ import lotteryAbi from "./Contract/Lottery.json";
 import { Lottery as LotteryType } from "./Contract/types/Lottery";
 import { maskAddress, networkMatcher } from "./util";
 import { TransactionRequest } from "@ethersproject/providers";
+import useWalletConnected from "./hooks/useWalletConnected";
 
 const CONTRACT_ADDRESS = "0x8A495C3Cd9C663853b132BE99E82a6D16e569d03";
 //TODO: SHOW WINNERS ADDRESS WHEN WINER IS PICKED
@@ -17,10 +18,10 @@ const CONTRACT_ADDRESS = "0x8A495C3Cd9C663853b132BE99E82a6D16e569d03";
 //TODO: AFTER PICK WINNER CLICKED REFRESH WALLET BALANCE
 
 const App = () => {
+	const [isWalletConnected] = useWalletConnected();
+
 	const walletAddress = maskAddress(window.ethereum.selectedAddress);
 	const walletNetwork = networkMatcher(window.ethereum.networkVersion);
-
-	const [isWalletConnected, setIsWalletConnected] = useState(false);
 
 	const [isContractOwner, setIsContractOwner] = useState(false);
 	const [isContractOwnerLoading, setIsContractLoading] = useState(false);
@@ -38,9 +39,7 @@ const App = () => {
 			await window.ethereum.request({
 				method: "eth_requestAccounts",
 			});
-			setIsWalletConnected(true);
 		} catch (err) {
-			setIsWalletConnected(false);
 			console.error(err);
 		}
 	};
@@ -71,14 +70,14 @@ const App = () => {
 	}, [isWalletConnected]);
 
 	const contractOwner = useCallback(async () => {
-		if (isWalletConnected) {
+		if (window.ethereum.selectedAddress) {
 			setIsContractLoading(true);
 			setIsContractOwner(
 				(await contractFactory().owner()).toLowerCase() === window.ethereum.selectedAddress
 			);
 			setIsContractLoading(false);
 		}
-	}, [isWalletConnected]);
+	}, []);
 
 	const handleJoinLottery = async () => {
 		try {
