@@ -1,4 +1,6 @@
-export const NETWORKS_IDS = {
+export const CONTRACT_ADDRESS = "0xd67057b49eD38115A69d90ebcB6Fb6cDf49eD01F";
+
+export const NETWORK_IDS = {
 	Mainnet: "1",
 	Kovan: "42",
 	Ropsten: "3",
@@ -16,15 +18,15 @@ const NETWORKS = {
 
 export const networkMatcher = (networkId: string | null) => {
 	switch (networkId) {
-		case NETWORKS_IDS.Goerli:
+		case NETWORK_IDS.Goerli:
 			return NETWORKS.Goerli;
-		case NETWORKS_IDS.Kovan:
+		case NETWORK_IDS.Kovan:
 			return NETWORKS.Kovan;
-		case NETWORKS_IDS.Ropsten:
+		case NETWORK_IDS.Ropsten:
 			return NETWORKS.Ropsten;
-		case NETWORKS_IDS.Rinkeby:
+		case NETWORK_IDS.Rinkeby:
 			return NETWORKS.Rinkeby;
-		case NETWORKS_IDS.Mainnet:
+		case NETWORK_IDS.Mainnet:
 			return NETWORKS.Mainnet;
 		default:
 			return "Network not found!";

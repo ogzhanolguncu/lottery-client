@@ -1,83 +1,29 @@
-import { useCallback, useEffect, useState } from "react";
-import { Flex, Heading, Box, Button, Text, HStack, SkeletonText } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import { Flex, Heading, Box, Button, Text, HStack } from "@chakra-ui/react";
 
 import { ethers } from "ethers";
 
-import lotteryAbi from "./Contract/Lottery.json";
-import { Lottery as LotteryType } from "./Contract/types/Lottery";
-import { maskAddress, networkMatcher } from "./util";
+import { CONTRACT_ADDRESS, NETWORK_IDS } from "./util";
 import { TransactionRequest } from "@ethersproject/providers";
 import useWalletConnected from "./hooks/useWalletConnected";
+import ParticipantBox from "./components/ParticipantBox";
+import { contractFactory } from "./util/contractFactory";
+import InfoBox from "./components/InfoBox";
 
-const CONTRACT_ADDRESS = "0x8A495C3Cd9C663853b132BE99E82a6D16e569d03";
-//TODO: SHOW WINNERS ADDRESS WHEN WINER IS PICKED
-//TODO: ADD NUMBER OF PEOPLE IN THE LOTTERY WHEN APP FIRST LOADS
 //TODO: GOOD TO HAVE -> SWR TO PERIODICAALLY REFRESH
-//TODO: WATCH FOR NETWORK CHANGES AND RELOAD THE PAGE
-//TODO: WATCH FOR ACCOUNT CHANGES AND RELOAD THE PAGE
-//TODO: AFTER PICK WINNER CLICKED REFRESH WALLET BALANCE
+//TODO: AFTER PICK WINNER & JOIN LOTTERY CLICKED  REFRESH WALLET BALANCE
+//TODO: STATE MANAGEMENT
+//TODO: FORCE NETWORK CHANGE ON LOAD IF NOT ROPSTEN
 
 const App = () => {
 	const [isWalletConnected] = useWalletConnected();
 
-	const walletAddress = maskAddress(window.ethereum.selectedAddress);
-	const walletNetwork = networkMatcher(window.ethereum.networkVersion);
-
-	const [isContractOwner, setIsContractOwner] = useState(false);
-	const [isContractOwnerLoading, setIsContractLoading] = useState(false);
-
-	const [walletBalance, setWalletBalance] = useState<string>();
-	const [isWalletBalance, setIsWalletBalance] = useState(false);
-
 	const [playerCount, setPlayerCount] = useState<number>();
+	const [isPlayerCountLoading, setIsPlayerCountLoading] = useState(false);
+
 	const [contractError, setContractError] = useState<string>();
 
 	const [isTransactionPending, setIsTransactionPending] = useState(false);
-
-	const connectToMetamask = async () => {
-		try {
-			await window.ethereum.request({
-				method: "eth_requestAccounts",
-			});
-		} catch (err) {
-			console.error(err);
-		}
-	};
-
-	const contractFactory = () => {
-		const ethereum = window.ethereum;
-
-		const web3Provider = new ethers.providers.Web3Provider(ethereum as any);
-		const signer = web3Provider.getSigner();
-
-		return new ethers.Contract(CONTRACT_ADDRESS, lotteryAbi, signer) as LotteryType;
-	};
-
-	const getWalletBalance = useCallback(async () => {
-		if (isWalletConnected) {
-			const web3Provider = new ethers.providers.Web3Provider(window.ethereum as any);
-
-			setIsWalletBalance(true);
-			const walletsEtherAmount = Number(
-				ethers.utils.formatEther(
-					await web3Provider.getBalance(window.ethereum.selectedAddress || "")
-				)
-			).toFixed(4);
-
-			setWalletBalance(walletsEtherAmount);
-			setIsWalletBalance(false);
-		}
-	}, [isWalletConnected]);
-
-	const contractOwner = useCallback(async () => {
-		if (window.ethereum.selectedAddress) {
-			setIsContractLoading(true);
-			setIsContractOwner(
-				(await contractFactory().owner()).toLowerCase() === window.ethereum.selectedAddress
-			);
-			setIsContractLoading(false);
-		}
-	}, []);
 
 	const handleJoinLottery = async () => {
 		try {
@@ -111,10 +57,12 @@ const App = () => {
 
 	const fetchPlayerCount = async () => {
 		try {
-			if (isWalletConnected) {
+			if (isWalletConnected && window.ethereum.networkVersion === NETWORK_IDS.Ropsten) {
 				const lotteryContract = contractFactory();
+				setIsPlayerCountLoading(true);
 				const playerCount = await lotteryContract.playersCount();
 				setPlayerCount(playerCount.toNumber());
+				setIsPlayerCountLoading(false);
 			}
 		} catch (err) {
 			console.log({ err });
@@ -123,65 +71,18 @@ const App = () => {
 	};
 
 	useEffect(() => {
-		contractOwner();
-		getWalletBalance();
-	}, [contractOwner, getWalletBalance]);
-
-	useEffect(() => {
 		fetchPlayerCount();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isWalletConnected]);
 
-	useEffect(() => {
-		window.ethereum.on("accountsChanged", contractOwner);
-	}, [contractOwner]);
-
-	const isPickWinnerAllowed =
-		playerCount && (playerCount >= 10 || (isContractOwner && playerCount >= 3));
+	//TODO: REPLACE TRUE WITH CONTRACT ORDER STATE
+	const isPickWinnerAllowed = playerCount && (playerCount >= 10 || (true && playerCount >= 3));
 
 	return (
-		<Flex flexDirection="column" padding="1rem" marginRight="1rem">
-			<Flex justifyContent="flex-end" width="100%" padding="1rem">
-				<HStack spacing="35px">
-					<SkeletonText isLoaded={isWalletConnected} noOfLines={3} width="80px" height="48px">
-						<Box>
-							Network <Text color="white">{walletNetwork}</Text>
-						</Box>
-					</SkeletonText>
-					<SkeletonText
-						isLoaded={isWalletConnected && !isWalletBalance}
-						noOfLines={3}
-						width="120px"
-						height="48px"
-					>
-						<Box>
-							Wallet Balance <Text color="white">{walletBalance} ETH</Text>
-						</Box>
-					</SkeletonText>
-					<SkeletonText
-						isLoaded={isWalletConnected && !isContractOwnerLoading}
-						noOfLines={3}
-						width="70px"
-						height="48px"
-					>
-						<Box>
-							Address
-							{isContractOwner ? <Text color="red.500">Owner</Text> : walletAddress}
-						</Box>
-					</SkeletonText>
-					<Button onClick={connectToMetamask} color="#916BBF">
-						{isWalletConnected ? "Connected" : "Connect Wallet"}
-					</Button>
-				</HStack>
-			</Flex>
-
-			<Flex
-				justifyContent="center"
-				alignItems="center"
-				height="80vh"
-				flexDirection="column"
-				width="100%"
-			>
+		<Flex flexDirection="column" padding="1rem" margin="1rem">
+			<InfoBox />
+			<ParticipantBox playerCount={playerCount} isPlayerCountLoading={isPlayerCountLoading} />
+			<Flex justifyContent="center" alignItems="center" flexDirection="column" width="100%">
 				<Heading textAlign="center">Place some ether to win the Lottery!</Heading>
 				<Text marginTop="2rem" textAlign="center">
 					Minimum entry fee is 0.1 ether. You can buy as many tickets as you want to increase to

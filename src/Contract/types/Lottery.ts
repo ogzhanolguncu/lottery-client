@@ -2,268 +2,237 @@
 /* tslint:disable */
 /* eslint-disable */
 import {
-  BaseContract,
-  BigNumber,
-  BigNumberish,
-  BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+	BaseContract,
+	BigNumber,
+	BigNumberish,
+	BytesLike,
+	CallOverrides,
+	ContractTransaction,
+	Overrides,
+	PopulatedTransaction,
+	Signer,
+	utils,
 } from "ethers";
 import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
 export interface LotteryInterface extends utils.Interface {
-  functions: {
-    "MIN_DEPOSIT()": FunctionFragment;
-    "getBalance()": FunctionFragment;
-    "owner()": FunctionFragment;
-    "pickWinner()": FunctionFragment;
-    "players(uint256)": FunctionFragment;
-    "playersCount()": FunctionFragment;
-    "random()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-  };
+	functions: {
+		"MIN_DEPOSIT()": FunctionFragment;
+		"getBalance()": FunctionFragment;
+		"lastWinner()": FunctionFragment;
+		"owner()": FunctionFragment;
+		"pickWinner()": FunctionFragment;
+		"players(uint256)": FunctionFragment;
+		"playersCount()": FunctionFragment;
+		"random()": FunctionFragment;
+		"renounceOwnership()": FunctionFragment;
+		"transferOwnership(address)": FunctionFragment;
+	};
 
-  encodeFunctionData(
-    functionFragment: "MIN_DEPOSIT",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getBalance",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "pickWinner",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "players",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "playersCount",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "random", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
+	encodeFunctionData(functionFragment: "MIN_DEPOSIT", values?: undefined): string;
+	encodeFunctionData(functionFragment: "getBalance", values?: undefined): string;
+	encodeFunctionData(functionFragment: "lastWinner", values?: undefined): string;
+	encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+	encodeFunctionData(functionFragment: "pickWinner", values?: undefined): string;
+	encodeFunctionData(functionFragment: "players", values: [BigNumberish]): string;
+	encodeFunctionData(functionFragment: "playersCount", values?: undefined): string;
+	encodeFunctionData(functionFragment: "random", values?: undefined): string;
+	encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
+	encodeFunctionData(functionFragment: "transferOwnership", values: [string]): string;
 
-  decodeFunctionResult(
-    functionFragment: "MIN_DEPOSIT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getBalance", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "pickWinner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "players", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "playersCount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "random", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
+	decodeFunctionResult(functionFragment: "MIN_DEPOSIT", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "getBalance", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "lastWinner", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "pickWinner", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "players", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "playersCount", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "random", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+	decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
 
-  events: {
-    "OwnershipTransferred(address,address)": EventFragment;
-  };
+	events: {
+		"OwnershipTransferred(address,address)": EventFragment;
+	};
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+	getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
 export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  { previousOwner: string; newOwner: string }
+	[string, string],
+	{ previousOwner: string; newOwner: string }
 >;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface Lottery extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+	connect(signerOrProvider: Signer | Provider | string): this;
+	attach(addressOrName: string): this;
+	deployed(): Promise<this>;
 
-  interface: LotteryInterface;
+	interface: LotteryInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+	queryFilter<TEvent extends TypedEvent>(
+		event: TypedEventFilter<TEvent>,
+		fromBlockOrBlockhash?: string | number | undefined,
+		toBlock?: string | number | undefined
+	): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+	listeners<TEvent extends TypedEvent>(
+		eventFilter?: TypedEventFilter<TEvent>
+	): Array<TypedListener<TEvent>>;
+	listeners(eventName?: string): Array<Listener>;
+	removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
+	removeAllListeners(eventName?: string): this;
+	off: OnEvent<this>;
+	on: OnEvent<this>;
+	once: OnEvent<this>;
+	removeListener: OnEvent<this>;
 
-  functions: {
-    MIN_DEPOSIT(overrides?: CallOverrides): Promise<[BigNumber]>;
+	functions: {
+		MIN_DEPOSIT(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getBalance(overrides?: CallOverrides): Promise<[BigNumber]>;
+		getBalance(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
+		lastWinner(overrides?: CallOverrides): Promise<[string]>;
 
-    pickWinner(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+		owner(overrides?: CallOverrides): Promise<[string]>;
 
-    players(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+		pickWinner(
+			overrides?: Overrides & { from?: string | Promise<string> }
+		): Promise<ContractTransaction>;
 
-    playersCount(overrides?: CallOverrides): Promise<[BigNumber]>;
+		players(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
-    random(overrides?: CallOverrides): Promise<[BigNumber]>;
+		playersCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+		random(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-  };
+		renounceOwnership(
+			overrides?: Overrides & { from?: string | Promise<string> }
+		): Promise<ContractTransaction>;
 
-  MIN_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
+		transferOwnership(
+			newOwner: string,
+			overrides?: Overrides & { from?: string | Promise<string> }
+		): Promise<ContractTransaction>;
+	};
 
-  getBalance(overrides?: CallOverrides): Promise<BigNumber>;
+	MIN_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
+	getBalance(overrides?: CallOverrides): Promise<BigNumber>;
 
-  pickWinner(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+	lastWinner(overrides?: CallOverrides): Promise<string>;
 
-  players(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+	owner(overrides?: CallOverrides): Promise<string>;
 
-  playersCount(overrides?: CallOverrides): Promise<BigNumber>;
+	pickWinner(
+		overrides?: Overrides & { from?: string | Promise<string> }
+	): Promise<ContractTransaction>;
 
-  random(overrides?: CallOverrides): Promise<BigNumber>;
+	players(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+	playersCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+	random(overrides?: CallOverrides): Promise<BigNumber>;
 
-  callStatic: {
-    MIN_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
+	renounceOwnership(
+		overrides?: Overrides & { from?: string | Promise<string> }
+	): Promise<ContractTransaction>;
 
-    getBalance(overrides?: CallOverrides): Promise<BigNumber>;
+	transferOwnership(
+		newOwner: string,
+		overrides?: Overrides & { from?: string | Promise<string> }
+	): Promise<ContractTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
+	callStatic: {
+		MIN_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
 
-    pickWinner(overrides?: CallOverrides): Promise<string>;
+		getBalance(overrides?: CallOverrides): Promise<BigNumber>;
 
-    players(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+		lastWinner(overrides?: CallOverrides): Promise<string>;
 
-    playersCount(overrides?: CallOverrides): Promise<BigNumber>;
+		owner(overrides?: CallOverrides): Promise<string>;
 
-    random(overrides?: CallOverrides): Promise<BigNumber>;
+		pickWinner(overrides?: CallOverrides): Promise<string>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+		players(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+		playersCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  filters: {
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-  };
+		random(overrides?: CallOverrides): Promise<BigNumber>;
 
-  estimateGas: {
-    MIN_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
+		renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    getBalance(overrides?: CallOverrides): Promise<BigNumber>;
+		transferOwnership(newOwner: string, overrides?: CallOverrides): Promise<void>;
+	};
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
+	filters: {
+		"OwnershipTransferred(address,address)"(
+			previousOwner?: string | null,
+			newOwner?: string | null
+		): OwnershipTransferredEventFilter;
+		OwnershipTransferred(
+			previousOwner?: string | null,
+			newOwner?: string | null
+		): OwnershipTransferredEventFilter;
+	};
 
-    pickWinner(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+	estimateGas: {
+		MIN_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
 
-    players(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+		getBalance(overrides?: CallOverrides): Promise<BigNumber>;
 
-    playersCount(overrides?: CallOverrides): Promise<BigNumber>;
+		lastWinner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    random(overrides?: CallOverrides): Promise<BigNumber>;
+		owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+		pickWinner(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-  };
+		players(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-  populateTransaction: {
-    MIN_DEPOSIT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+		playersCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getBalance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+		random(overrides?: CallOverrides): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+		renounceOwnership(
+			overrides?: Overrides & { from?: string | Promise<string> }
+		): Promise<BigNumber>;
 
-    pickWinner(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+		transferOwnership(
+			newOwner: string,
+			overrides?: Overrides & { from?: string | Promise<string> }
+		): Promise<BigNumber>;
+	};
 
-    players(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+	populateTransaction: {
+		MIN_DEPOSIT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    playersCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+		getBalance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    random(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+		lastWinner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+		owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-  };
+		pickWinner(
+			overrides?: Overrides & { from?: string | Promise<string> }
+		): Promise<PopulatedTransaction>;
+
+		players(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+		playersCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+		random(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+		renounceOwnership(
+			overrides?: Overrides & { from?: string | Promise<string> }
+		): Promise<PopulatedTransaction>;
+
+		transferOwnership(
+			newOwner: string,
+			overrides?: Overrides & { from?: string | Promise<string> }
+		): Promise<PopulatedTransaction>;
+	};
 }
