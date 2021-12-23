@@ -75,7 +75,7 @@ const App = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isWalletConnected]);
 
-	//TODO: REPLACE TRUE WITH CONTRACT ORDER STATE
+	//TODO: REPLACE TRUE WITH CONTRACT OWNER STATE
 	const isPickWinnerAllowed = playerCount && (playerCount >= 10 || (true && playerCount >= 3));
 
 	return (

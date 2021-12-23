@@ -5,7 +5,7 @@ const useWalletConnected = () => {
 
 	useEffect(() => {
 		const interval = setInterval(async () => {
-			const accounts = (await window.ethereum.request({
+			const accounts = (await window.ethereum?.request({
 				method: "eth_accounts",
 			})) as string[];
 			if (accounts?.length > 0) setIsWalletConnected(true);

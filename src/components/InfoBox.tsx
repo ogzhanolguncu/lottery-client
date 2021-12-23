@@ -7,8 +7,12 @@ import { maskAddress, networkMatcher, NETWORK_IDS } from "../util";
 import { contractFactory } from "../util/contractFactory";
 
 const InfoBox = () => {
-	const walletAddress = maskAddress(window.ethereum.selectedAddress);
-	const walletNetwork = networkMatcher(window.ethereum.networkVersion);
+	const isRopsten = window.ethereum
+		? window.ethereum.networkVersion === NETWORK_IDS.Ropsten
+		: "####";
+
+	const walletAddress = maskAddress(window.ethereum?.selectedAddress);
+	const walletNetwork = networkMatcher(window.ethereum?.networkVersion);
 
 	const [isContractOwner, setIsContractOwner] = useState(false);
 	const [isContractOwnerLoading, setIsContractLoading] = useState(false);
@@ -17,14 +21,14 @@ const InfoBox = () => {
 	const [isWalletBalanceLoading, setIsWalletBalanceLoading] = useState(false);
 
 	const contractOwner = useCallback(async () => {
-		if (window.ethereum.selectedAddress && window.ethereum.networkVersion === NETWORK_IDS.Ropsten) {
+		if (isRopsten && window.ethereum?.selectedAddress) {
 			setIsContractLoading(true);
 			setIsContractOwner(
 				(await contractFactory().owner()).toLowerCase() === window.ethereum.selectedAddress
 			);
 			setIsContractLoading(false);
 		}
-	}, []);
+	}, [isRopsten]);
 
 	const [isWalletConnected] = useWalletConnected();
 
@@ -55,14 +59,14 @@ const InfoBox = () => {
 	}, [isWalletConnected]);
 
 	useEffect(() => {
-		window.ethereum.on("accountsChanged", contractOwner);
+		window.ethereum?.on("accountsChanged", contractOwner);
 		return () => {
-			window.ethereum.removeListener("accountsChanged", contractOwner);
+			window.ethereum?.removeListener("accountsChanged", contractOwner);
 		};
 	}, [contractOwner]);
 
 	useEffect(() => {
-		window.ethereum.on("chainChanged", (chainId) => {
+		window.ethereum?.on("chainChanged", () => {
 			window.location.reload();
 		});
 	}, [contractOwner]);

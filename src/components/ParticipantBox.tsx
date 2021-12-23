@@ -12,7 +12,9 @@ type ParticipantBoxProps = {
 };
 
 const ParticipantBox = ({ playerCount, isPlayerCountLoading }: ParticipantBoxProps) => {
-	const isRopsten = window.ethereum.networkVersion === NETWORK_IDS.Ropsten;
+	const isRopsten = window.ethereum
+		? window.ethereum.networkVersion === NETWORK_IDS.Ropsten
+		: false;
 	const [isWalletConnected] = useWalletConnected();
 
 	const [lastWinner, setLastWinner] = useState<string>();
