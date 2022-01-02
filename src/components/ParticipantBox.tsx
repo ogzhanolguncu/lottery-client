@@ -10,7 +10,7 @@ import { globalState, player } from "../store/globalStore";
 const ParticipantBox = () => {
 	const { isUserConnected, metaMaskInstance } = useSnapshot(globalState);
 	const { playerCount, isLoading } = useSnapshot(player);
-	console.log({ isUserConnected });
+
 	const isRopsten = metaMaskInstance
 		? metaMaskInstance.networkVersion === NETWORK_IDS.Ropsten
 		: false;

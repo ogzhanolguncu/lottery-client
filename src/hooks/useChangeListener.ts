@@ -7,7 +7,6 @@ import { contractFactory } from "../util/contractFactory";
 
 const useChangeListener = () => {
 	const { metaMaskInstance, isUserConnected } = useSnapshot(globalState);
-	console.log({ metaMaskInstance: metaMaskInstance?.isConnected() });
 	const [isContractOwnerLoading, setIsContractLoading] = useState(false);
 
 	const [walletBalance, setWalletBalance] = useState<string>();
