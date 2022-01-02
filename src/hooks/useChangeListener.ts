@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSnapshot } from "valtio";
 import { globalState } from "../store/globalStore";
 import { NETWORK_IDS } from "../util";
