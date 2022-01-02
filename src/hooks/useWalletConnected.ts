@@ -1,17 +1,22 @@
+import { useAtom } from "jotai";
 import { useEffect } from "react";
-import { useStore } from "../store/globalStore";
+import { globalAtom } from "../store/globalStore";
 
 const useWalletConnected = () => {
-	const toggleUserConnection = useStore((state) => state.toggleUserConnection);
+	const [, setState] = useAtom(globalAtom);
 	useEffect(() => {
 		const interval = setInterval(async () => {
 			const accounts = (await window.ethereum?.request({
 				method: "eth_accounts",
 			})) as string[];
 			if (accounts?.length > 0) {
-				toggleUserConnection(true);
+				setState((prevState) => ({
+					...prevState,
+					isUserConnected: true,
+					metaMaskInstance: window.ethereum,
+				}));
 			} else {
-				toggleUserConnection(false);
+				setState({ isUserConnected: false });
 			}
 		}, 2000);
 		return () => clearInterval(interval);

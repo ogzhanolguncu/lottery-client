@@ -2,14 +2,11 @@ import { Flex, SkeletonText, Box, Button, Text, Stack } from "@chakra-ui/react";
 
 import { maskAddress, networkMatcher } from "../util";
 import useChangeListener from "../hooks/useChangeListener";
-import { useStore } from "../store/globalStore";
+import { globalAtom } from "../store/globalStore";
+import { useAtom } from "jotai";
 
 const InfoBox = () => {
-	const { metaMaskInstance, isUserConnected, isContractOwner } = useStore((state) => ({
-		metaMaskInstance: state.metaMaskInstance,
-		isUserConnected: state.isUserConnected,
-		isContractOwner: state.isContractOwner,
-	}));
+	const [{ metaMaskInstance, isUserConnected, isContractOwner }] = useAtom(globalAtom);
 	const [{ isContractOwnerLoading, isWalletBalanceLoading, walletBalance }] = useChangeListener();
 
 	const walletAddress = maskAddress(metaMaskInstance?.selectedAddress);

@@ -2,31 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Flex, Heading, Box, HStack, Button, Text } from "@chakra-ui/react";
 import { ethers } from "ethers";
 
-import { useStore } from "../store/globalStore";
 import { CONTRACT_ADDRESS } from "../util";
 import { contractFactory } from "../util/contractFactory";
+import { useAtom } from "jotai";
+import { fetchPlayerAtom, globalAtom } from "../store/globalStore";
 
 const JoinLottery = () => {
-	const {
-		metaMaskInstance,
-		isUserConnected,
-		isContractOwner,
-		setContractError,
-		playerCount,
-		contractError,
-		fetchPlayerCount,
-	} = useStore((state) => ({
-		metaMaskInstance: state.metaMaskInstance,
-		isUserConnected: state.isUserConnected,
-		isContractOwner: state.isContractOwner,
-		setContractError: state.setContractError,
-		setPlayerLoading: state.setPlayerCountLoading,
-		setPlayerCount: state.setPlayerCount,
-		playerCount: state.playerCount,
-		contractError: state.contractError,
-		fetchPlayerCount: state.fetchPlayerCount,
-	}));
-
+	const [{ metaMaskInstance, isUserConnected, isContractOwner, contractError }, setState] =
+		useAtom(globalAtom);
+	const [{ playerCount }, fetchPlayers] = useAtom(fetchPlayerAtom);
 	const [isTransactionPending, setIsTransactionPending] = useState(false);
 
 	const handleJoinLottery = async () => {
@@ -45,7 +29,10 @@ const JoinLottery = () => {
 			setIsTransactionPending(false);
 		} catch (err) {
 			setIsTransactionPending(false);
-			setContractError(err.error.message.split("execution reverted: ")[1]);
+			setState((prevState) => ({
+				...prevState,
+				contractError: err.error.message.split("execution reverted: ")[1],
+			}));
 		}
 	};
 
@@ -55,13 +42,16 @@ const JoinLottery = () => {
 			await lotteryContract.pickWinner();
 		} catch (err) {
 			console.log({ err });
-			setContractError(err.error.message.split("execution reverted: ")[1]);
+			setState((prevState) => ({
+				...prevState,
+				contractError: err.error.message.split("execution reverted: ")[1],
+			}));
 		}
 	};
 
 	useEffect(() => {
-		fetchPlayerCount();
-	}, [fetchPlayerCount, isUserConnected]);
+		fetchPlayers();
+	}, [fetchPlayers, isUserConnected]);
 
 	const isPickWinnerAllowed =
 		playerCount && (playerCount >= 10 || (isContractOwner && playerCount >= 3));

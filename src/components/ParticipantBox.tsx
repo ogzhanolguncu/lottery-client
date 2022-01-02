@@ -4,18 +4,12 @@ import { Flex, Box, Text, SkeletonText } from "@chakra-ui/react";
 import { maskAddress, NETWORK_IDS } from "../util";
 
 import { contractFactory } from "../util/contractFactory";
-import { useStore } from "../store/globalStore";
+import { useAtom } from "jotai";
+import { globalAtom, playerAtom } from "../store/globalStore";
 
 const ParticipantBox = () => {
-	const { metaMaskInstance, contractError, isUserConnected, isLoading, playerCount } = useStore(
-		(state) => ({
-			metaMaskInstance: state.metaMaskInstance,
-			isUserConnected: state.isUserConnected,
-			contractError: state.setContractError,
-			isLoading: state.isPlayerCountLoading,
-			playerCount: state.playerCount,
-		})
-	);
+	const [{ metaMaskInstance, isUserConnected }, setState] = useAtom(globalAtom);
+	const [{ playerCount, playerLoading }] = useAtom(playerAtom);
 
 	const isRopsten = metaMaskInstance
 		? metaMaskInstance.networkVersion === NETWORK_IDS.Ropsten
@@ -34,10 +28,13 @@ const ParticipantBox = () => {
 				setIsLastWinnerLoading(false);
 			}
 		} catch (err) {
-			contractError(err.error.message.split("execution reverted: ")[1]);
+			setState((prevState) => ({
+				...prevState,
+				contractError: err.error.message.split("execution reverted: ")[1],
+			}));
 			console.log({ err });
 		}
-	}, [isUserConnected, isRopsten, contractError]);
+	}, [isUserConnected, isRopsten, setState]);
 
 	useEffect(() => {
 		fetchLastWinner();
@@ -65,7 +62,7 @@ const ParticipantBox = () => {
 							No. Participant:
 						</Text>
 						<SkeletonText
-							isLoaded={isUserConnected && !isLoading}
+							isLoaded={isUserConnected && !playerLoading}
 							noOfLines={3}
 							width="50px"
 							marginLeft="0.3rem"

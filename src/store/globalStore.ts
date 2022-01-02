@@ -1,6 +1,6 @@
-import create from "zustand";
 import { MetaMaskInpageProvider } from "@metamask/providers";
 import { contractFactory } from "../util/contractFactory";
+import { atom } from "jotai";
 
 type GlobalState = {
 	metaMaskInstance?: MetaMaskInpageProvider;
@@ -9,26 +9,28 @@ type GlobalState = {
 	isContractOwner?: boolean;
 	playerCount?: number;
 	isPlayerCountLoading?: boolean;
-	toggleUserConnection: (isConnected: boolean) => void;
-	setContractError: (errorMessage: string) => void;
-	setPlayerCount: (count: number) => void;
-	setPlayerCountLoading: (loading: boolean) => void;
-	setIsContractOwner: (isOwner: boolean) => void;
-	fetchPlayerCount: () => Promise<void>;
 };
 
-export const useStore = create<GlobalState>((set) => ({
-	metaMaskInstance: window.ethereum,
+export const globalAtom = atom<GlobalState>({
+	metaMaskInstance: window?.ethereum,
 	isUserConnected: false,
-	toggleUserConnection: (isConnected: boolean) => set(() => ({ isUserConnected: isConnected })),
-	setContractError: (errorMessage: string) => set(() => ({ contractError: errorMessage })),
-	setPlayerCount: (count: number) => set(() => ({ playerCount: count })),
-	setPlayerCountLoading: (loading: boolean) => set(() => ({ isPlayerCountLoading: loading })),
-	setIsContractOwner: (isOwner: boolean) => set(() => ({ isContractOwner: isOwner })),
-	fetchPlayerCount: async () => {
-		const lotteryContract = contractFactory();
-		set({ isPlayerCountLoading: true });
-		const response = await lotteryContract.playersCount();
-		set({ isPlayerCountLoading: false, playerCount: response.toNumber() });
-	},
-}));
+});
+
+type Player = {
+	playerCount?: number;
+	playerLoading?: boolean;
+};
+
+export const playerAtom = atom<Player>({});
+
+export const fetchPlayerAtom = atom(
+	(get) => get(playerAtom),
+	async (_get, set) => {
+		if (_get(globalAtom).isUserConnected) {
+			const lotteryContract = contractFactory();
+			set(playerAtom, { playerLoading: true });
+			const response = await lotteryContract.playersCount();
+			set(playerAtom, { playerLoading: false, playerCount: response.toNumber() });
+		}
+	}
+);
