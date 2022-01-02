@@ -16,7 +16,7 @@ const NETWORKS = {
 	Goerli: "Goerli",
 };
 
-export const networkMatcher = (networkId: string | null) => {
+export const networkMatcher = (networkId?: string | null) => {
 	switch (networkId) {
 		case NETWORK_IDS.Goerli:
 			return NETWORKS.Goerli;
@@ -33,7 +33,7 @@ export const networkMatcher = (networkId: string | null) => {
 	}
 };
 
-export const maskAddress = (address: string | null) => {
+export const maskAddress = (address?: string | null) => {
 	if (address) {
 		const addressHead = address.slice(0, 4);
 		const addressTail = address.slice(-4, address.length);

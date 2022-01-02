@@ -3,26 +3,24 @@ import { Flex, Box, Text, SkeletonText } from "@chakra-ui/react";
 
 import { maskAddress, NETWORK_IDS } from "../util";
 
-import useWalletConnected from "../hooks/useWalletConnected";
 import { contractFactory } from "../util/contractFactory";
+import { useSnapshot } from "valtio";
+import { globalState, player } from "../store/globalStore";
 
-type ParticipantBoxProps = {
-	playerCount: number | undefined;
-	isPlayerCountLoading: boolean;
-};
-
-const ParticipantBox = ({ playerCount, isPlayerCountLoading }: ParticipantBoxProps) => {
-	const isRopsten = window.ethereum
-		? window.ethereum.networkVersion === NETWORK_IDS.Ropsten
+const ParticipantBox = () => {
+	const { isUserConnected, metaMaskInstance } = useSnapshot(globalState);
+	const { playerCount, isLoading } = useSnapshot(player);
+	console.log({ isUserConnected });
+	const isRopsten = metaMaskInstance
+		? metaMaskInstance.networkVersion === NETWORK_IDS.Ropsten
 		: false;
-	const [isWalletConnected] = useWalletConnected();
 
 	const [lastWinner, setLastWinner] = useState<string>();
 	const [isLastWinnerLoading, setIsLastWinnerLoading] = useState(false);
 
 	const fetchLastWinner = useCallback(async () => {
 		try {
-			if (isWalletConnected && window.ethereum.networkVersion === NETWORK_IDS.Ropsten) {
+			if (isUserConnected && isRopsten) {
 				const lotteryContract = contractFactory();
 				setIsLastWinnerLoading(true);
 				const lastWinnerAddress = await lotteryContract.lastWinner();
@@ -30,9 +28,10 @@ const ParticipantBox = ({ playerCount, isPlayerCountLoading }: ParticipantBoxPro
 				setIsLastWinnerLoading(false);
 			}
 		} catch (err) {
+			globalState.contractError = err.error.message.split("execution reverted: ")[1];
 			console.log({ err });
 		}
-	}, [isWalletConnected]);
+	}, [isUserConnected, isRopsten]);
 
 	useEffect(() => {
 		fetchLastWinner();
@@ -60,7 +59,7 @@ const ParticipantBox = ({ playerCount, isPlayerCountLoading }: ParticipantBoxPro
 							No. Participant:
 						</Text>
 						<SkeletonText
-							isLoaded={isWalletConnected && !isPlayerCountLoading}
+							isLoaded={isUserConnected && !isLoading}
 							noOfLines={3}
 							width="50px"
 							marginLeft="0.3rem"
@@ -75,7 +74,7 @@ const ParticipantBox = ({ playerCount, isPlayerCountLoading }: ParticipantBoxPro
 							Last winner's address:
 						</Text>
 						<SkeletonText
-							isLoaded={isWalletConnected && !isLastWinnerLoading}
+							isLoaded={isUserConnected && !isLastWinnerLoading}
 							noOfLines={3}
 							width={["70px", "70px", "120px", "120px"]}
 							marginLeft="0.3rem"

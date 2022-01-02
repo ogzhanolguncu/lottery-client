@@ -1,40 +1,20 @@
-import React, { useCallback, useEffect, useState } from "react";
 import { Flex, SkeletonText, Box, Button, Text, Stack } from "@chakra-ui/react";
-import { ethers } from "ethers";
 
-import useWalletConnected from "../hooks/useWalletConnected";
-import { maskAddress, networkMatcher, NETWORK_IDS } from "../util";
-import { contractFactory } from "../util/contractFactory";
+import { maskAddress, networkMatcher } from "../util";
+import { useSnapshot } from "valtio";
+import { globalState } from "../store/globalStore";
+import useChangeListener from "../hooks/useChangeListener";
 
 const InfoBox = () => {
-	const isRopsten = window.ethereum
-		? window.ethereum.networkVersion === NETWORK_IDS.Ropsten
-		: "####";
+	const { isUserConnected, metaMaskInstance, isContractOwner } = useSnapshot(globalState);
+	const [{ isContractOwnerLoading, isWalletBalanceLoading, walletBalance }] = useChangeListener();
 
-	const walletAddress = maskAddress(window.ethereum?.selectedAddress);
-	const walletNetwork = networkMatcher(window.ethereum?.networkVersion);
-
-	const [isContractOwner, setIsContractOwner] = useState(false);
-	const [isContractOwnerLoading, setIsContractLoading] = useState(false);
-
-	const [walletBalance, setWalletBalance] = useState<string>();
-	const [isWalletBalanceLoading, setIsWalletBalanceLoading] = useState(false);
-
-	const contractOwner = useCallback(async () => {
-		if (isRopsten && window.ethereum?.selectedAddress) {
-			setIsContractLoading(true);
-			setIsContractOwner(
-				(await contractFactory().owner()).toLowerCase() === window.ethereum.selectedAddress
-			);
-			setIsContractLoading(false);
-		}
-	}, [isRopsten]);
-
-	const [isWalletConnected] = useWalletConnected();
+	const walletAddress = maskAddress(metaMaskInstance?.selectedAddress);
+	const walletNetwork = networkMatcher(metaMaskInstance?.networkVersion);
 
 	const connectToMetamask = async () => {
 		try {
-			await window.ethereum.request({
+			await metaMaskInstance?.request({
 				method: "eth_requestAccounts",
 			});
 		} catch (err) {
@@ -42,52 +22,18 @@ const InfoBox = () => {
 		}
 	};
 
-	const getWalletBalance = useCallback(async () => {
-		if (isWalletConnected) {
-			const web3Provider = new ethers.providers.Web3Provider(window.ethereum as any);
-
-			setIsWalletBalanceLoading(true);
-			const walletsEtherAmount = Number(
-				ethers.utils.formatEther(
-					await web3Provider.getBalance(window.ethereum.selectedAddress || "")
-				)
-			).toFixed(4);
-
-			setWalletBalance(walletsEtherAmount);
-			setIsWalletBalanceLoading(false);
-		}
-	}, [isWalletConnected]);
-
-	useEffect(() => {
-		window.ethereum?.on("accountsChanged", contractOwner);
-		return () => {
-			window.ethereum?.removeListener("accountsChanged", contractOwner);
-		};
-	}, [contractOwner]);
-
-	useEffect(() => {
-		window.ethereum?.on("chainChanged", () => {
-			window.location.reload();
-		});
-	}, [contractOwner]);
-
-	useEffect(() => {
-		contractOwner();
-		getWalletBalance();
-	}, [contractOwner, getWalletBalance]);
-
 	return (
 		<Flex justifyContent={["center", "center", "flex-end", "flex-end"]} width="100%" padding="1rem">
 			<Stack spacing="35px" direction={["column", "column", "row", "row"]}>
 				<Flex>
-					<SkeletonText isLoaded={isWalletConnected} noOfLines={3} width="80px" height="48px">
+					<SkeletonText isLoaded={isUserConnected} noOfLines={3} width="80px" height="48px">
 						<Box>
 							Network <Text color="white">{walletNetwork}</Text>
 						</Box>
 					</SkeletonText>
 					<SkeletonText
 						marginLeft="35px"
-						isLoaded={isWalletConnected && !isWalletBalanceLoading}
+						isLoaded={isUserConnected && !isWalletBalanceLoading}
 						noOfLines={3}
 						width="120px"
 						height="48px"
@@ -99,7 +45,7 @@ const InfoBox = () => {
 				</Flex>
 				<Flex>
 					<SkeletonText
-						isLoaded={isWalletConnected && !isContractOwnerLoading}
+						isLoaded={isUserConnected && !isContractOwnerLoading}
 						noOfLines={3}
 						width="70px"
 						height="48px"
@@ -110,7 +56,7 @@ const InfoBox = () => {
 						</Box>
 					</SkeletonText>
 					<Button onClick={connectToMetamask} color="#916BBF" marginLeft="35px">
-						{isWalletConnected ? "Connected" : "Connect Wallet"}
+						{isUserConnected ? "Connected" : "Connect Wallet"}
 					</Button>
 				</Flex>
 			</Stack>
