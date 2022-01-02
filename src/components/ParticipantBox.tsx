@@ -4,12 +4,18 @@ import { Flex, Box, Text, SkeletonText } from "@chakra-ui/react";
 import { maskAddress, NETWORK_IDS } from "../util";
 
 import { contractFactory } from "../util/contractFactory";
-import { useSnapshot } from "valtio";
-import { globalState, player } from "../store/globalStore";
+import { useStore } from "../store/globalStore";
 
 const ParticipantBox = () => {
-	const { isUserConnected, metaMaskInstance } = useSnapshot(globalState);
-	const { playerCount, isLoading } = useSnapshot(player);
+	const { metaMaskInstance, contractError, isUserConnected, isLoading, playerCount } = useStore(
+		(state) => ({
+			metaMaskInstance: state.metaMaskInstance,
+			isUserConnected: state.isUserConnected,
+			contractError: state.setContractError,
+			isLoading: state.isPlayerCountLoading,
+			playerCount: state.playerCount,
+		})
+	);
 
 	const isRopsten = metaMaskInstance
 		? metaMaskInstance.networkVersion === NETWORK_IDS.Ropsten
@@ -28,10 +34,10 @@ const ParticipantBox = () => {
 				setIsLastWinnerLoading(false);
 			}
 		} catch (err) {
-			globalState.contractError = err.error.message.split("execution reverted: ")[1];
+			contractError(err.error.message.split("execution reverted: ")[1]);
 			console.log({ err });
 		}
-	}, [isUserConnected, isRopsten]);
+	}, [isUserConnected, isRopsten, contractError]);
 
 	useEffect(() => {
 		fetchLastWinner();

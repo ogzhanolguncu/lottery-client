@@ -1,12 +1,15 @@
 import { Flex, SkeletonText, Box, Button, Text, Stack } from "@chakra-ui/react";
 
 import { maskAddress, networkMatcher } from "../util";
-import { useSnapshot } from "valtio";
-import { globalState } from "../store/globalStore";
 import useChangeListener from "../hooks/useChangeListener";
+import { useStore } from "../store/globalStore";
 
 const InfoBox = () => {
-	const { isUserConnected, metaMaskInstance, isContractOwner } = useSnapshot(globalState);
+	const { metaMaskInstance, isUserConnected, isContractOwner } = useStore((state) => ({
+		metaMaskInstance: state.metaMaskInstance,
+		isUserConnected: state.isUserConnected,
+		isContractOwner: state.isContractOwner,
+	}));
 	const [{ isContractOwnerLoading, isWalletBalanceLoading, walletBalance }] = useChangeListener();
 
 	const walletAddress = maskAddress(metaMaskInstance?.selectedAddress);

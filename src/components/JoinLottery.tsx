@@ -1,16 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { Flex, Heading, Box, HStack, Button, Text } from "@chakra-ui/react";
 import { ethers } from "ethers";
-import { useSnapshot } from "valtio";
 
-import { globalState, player } from "../store/globalStore";
-import { CONTRACT_ADDRESS, NETWORK_IDS } from "../util";
+import { useStore } from "../store/globalStore";
+import { CONTRACT_ADDRESS } from "../util";
 import { contractFactory } from "../util/contractFactory";
 
 const JoinLottery = () => {
-	const { isUserConnected, metaMaskInstance, contractError, isContractOwner } =
-		useSnapshot(globalState);
-	const { playerCount } = useSnapshot(player);
+	const {
+		metaMaskInstance,
+		isUserConnected,
+		isContractOwner,
+		setContractError,
+		playerCount,
+		contractError,
+		fetchPlayerCount,
+	} = useStore((state) => ({
+		metaMaskInstance: state.metaMaskInstance,
+		isUserConnected: state.isUserConnected,
+		isContractOwner: state.isContractOwner,
+		setContractError: state.setContractError,
+		setPlayerLoading: state.setPlayerCountLoading,
+		setPlayerCount: state.setPlayerCount,
+		playerCount: state.playerCount,
+		contractError: state.contractError,
+		fetchPlayerCount: state.fetchPlayerCount,
+	}));
 
 	const [isTransactionPending, setIsTransactionPending] = useState(false);
 
@@ -30,7 +45,7 @@ const JoinLottery = () => {
 			setIsTransactionPending(false);
 		} catch (err) {
 			setIsTransactionPending(false);
-			globalState.contractError = err.error.message.split("execution reverted: ")[1];
+			setContractError(err.error.message.split("execution reverted: ")[1]);
 		}
 	};
 
@@ -40,29 +55,13 @@ const JoinLottery = () => {
 			await lotteryContract.pickWinner();
 		} catch (err) {
 			console.log({ err });
-			globalState.contractError = err.error.message.split("execution reverted: ")[1];
-		}
-	};
-
-	const fetchPlayerCount = async () => {
-		try {
-			if (isUserConnected && metaMaskInstance?.networkVersion === NETWORK_IDS.Ropsten) {
-				const lotteryContract = contractFactory();
-				player.isLoading = true;
-				const playerCount = await lotteryContract.playersCount();
-				player.playerCount = playerCount.toNumber();
-				player.isLoading = false;
-			}
-		} catch (err) {
-			console.log({ err });
-			globalState.contractError = err.error.message.split("execution reverted: ")[1];
+			setContractError(err.error.message.split("execution reverted: ")[1]);
 		}
 	};
 
 	useEffect(() => {
 		fetchPlayerCount();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isUserConnected]);
+	}, [fetchPlayerCount, isUserConnected]);
 
 	const isPickWinnerAllowed =
 		playerCount && (playerCount >= 10 || (isContractOwner && playerCount >= 3));

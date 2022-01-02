@@ -1,12 +1,15 @@
 import { ethers } from "ethers";
 import { useCallback, useEffect, useState } from "react";
-import { useSnapshot } from "valtio";
-import { globalState } from "../store/globalStore";
+import { useStore } from "../store/globalStore";
 import { NETWORK_IDS } from "../util";
 import { contractFactory } from "../util/contractFactory";
 
 const useChangeListener = () => {
-	const { metaMaskInstance, isUserConnected } = useSnapshot(globalState);
+	const { metaMaskInstance, setContractOwner, isUserConnected } = useStore((state) => ({
+		metaMaskInstance: state.metaMaskInstance,
+		setContractOwner: state.setIsContractOwner,
+		isUserConnected: state.isUserConnected,
+	}));
 	const [isContractOwnerLoading, setIsContractLoading] = useState(false);
 
 	const [walletBalance, setWalletBalance] = useState<string>();
@@ -19,11 +22,12 @@ const useChangeListener = () => {
 	const contractOwner = useCallback(async () => {
 		if (isRopsten && metaMaskInstance?.selectedAddress) {
 			setIsContractLoading(true);
-			globalState.isContractOwner =
-				(await contractFactory().owner()).toLowerCase() === metaMaskInstance.selectedAddress;
+			setContractOwner(
+				(await contractFactory().owner()).toLowerCase() === metaMaskInstance.selectedAddress
+			);
 			setIsContractLoading(false);
 		}
-	}, [isRopsten, metaMaskInstance?.selectedAddress]);
+	}, [isRopsten, metaMaskInstance?.selectedAddress, setContractOwner]);
 
 	const getWalletBalance = useCallback(async () => {
 		if (isUserConnected) {
